@@ -5,6 +5,7 @@ export const Env = {
   dbPassword: Bun.env.DB_PASSWORD,
   dbName: Bun.env.DB_NAME,
   dbUser: Bun.env.DB_USER,
+  apiKey: Bun.env.API_TOKEN,
 };
 
 export const Endpoints = [
