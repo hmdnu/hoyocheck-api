@@ -1,13 +1,10 @@
 import { Hono } from "hono";
-import { runDb } from "./libs/db";
+// import { runDb } from "./db/db";
 import { addUser, beginAutoCheck, checkSingle } from "./controllers/autoCheck";
 import { Env } from "./utils/constants";
 import { StatusCodes as http } from "http-status-codes";
 
 const app = new Hono();
-
-// run db
-runDb().then((res) => res);
 
 app.use("/*", async (c, next) => {
   const query = c.req.query("key");

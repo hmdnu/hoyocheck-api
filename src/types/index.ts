@@ -19,9 +19,9 @@ export type TResponses = {
 export type TUser = {
   id: string;
   username: string;
-  discord_user_id: string;
-  ltoken_v2: string;
-  ltuid_v2: string;
+  discordUserId: string;
+  ltokenV2: string;
+  ltuidV2: string;
 };
 
 export type TQuery = {
@@ -32,6 +32,6 @@ export type TQuery = {
 export type TResultData = {
   id: string;
   username: string;
-  discord_user_id: string;
+  discordUserId: string;
   data: TData[];
 };

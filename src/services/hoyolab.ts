@@ -14,7 +14,7 @@ export async function beginCheckIn(users: Promise<unknown>) {
   const result: TResultData[] = [];
 
   for (const user of usersPromise as TUser[]) {
-    const cookie = await serializeCookies(user.ltoken_v2, user.ltuid_v2);
+    const cookie = await serializeCookies(user.ltokenV2, user.ltuidV2);
     const [promise, error] = await handlePromise(fetch(cookie));
 
     if (error) {
@@ -24,7 +24,7 @@ export async function beginCheckIn(users: Promise<unknown>) {
 
     result.push({
       id: user.id,
-      discord_user_id: user.discord_user_id,
+      discordUserId: user.discordUserId,
       username: user.username,
       data: promise!,
     });

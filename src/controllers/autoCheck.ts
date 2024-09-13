@@ -3,10 +3,10 @@ import { beginCheckIn } from "../services/hoyolab";
 import { handlePromise } from "../utils/handlePromise";
 import { TResultData, TUser } from "../types";
 import { StatusCodes as http } from "http-status-codes";
-import { getUser, getUsers, insertTableUser } from "../libs/db";
 import { nanoid } from "nanoid";
 import { DatabaseError } from "pg";
 import { StatusCode } from "hono/utils/http-status";
+import { getUserByDcId, getUsers, insertUser } from "../db";
 
 export async function beginAutoCheck(c: Context) {
   const data = beginCheckIn(getUsers());
@@ -26,7 +26,7 @@ export async function beginAutoCheck(c: Context) {
 export async function checkSingle(c: Context) {
   const dcUserId = c.req.param("dcId");
 
-  const user = getUser(dcUserId);
+  const user = getUserByDcId(dcUserId);
   const [promise, error] = await handlePromise(user);
 
   if (error) {
@@ -41,12 +41,12 @@ export async function checkSingle(c: Context) {
 export async function addUser(c: Context) {
   const user: TUser = await c.req.json();
 
-  const res = insertTableUser({
+  const res = insertUser({
     id: nanoid(),
     username: user.username,
-    discord_user_id: user.discord_user_id,
-    ltoken_v2: user.ltoken_v2,
-    ltuid_v2: user.ltuid_v2,
+    discordUserId: user.discordUserId,
+    ltokenV2: user.ltokenV2,
+    ltuidV2: user.ltuidV2,
   });
 
   const [_, error] = await handlePromise(res);
