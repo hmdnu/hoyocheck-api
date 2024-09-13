@@ -1,5 +1,3 @@
-import type { FetchError } from "ofetch";
-
 export interface TData {
   data: any;
   message: string;
@@ -16,11 +14,6 @@ export type TResponses = {
   game: string;
   message: string;
   retcode: number;
-};
-
-export type TFetchResponse = {
-  data: TData[] | null;
-  error: FetchError | null;
 };
 
 export type TUser = {

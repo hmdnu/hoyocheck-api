@@ -1,14 +1,15 @@
 import { Context } from "hono";
-import { handleFetch } from "../services/hoyolab";
-import { Endpoints } from "../utils/constants";
+import { beginCheckIn } from "../services/hoyolab";
 import { handlePromise } from "../utils/handlePromise";
-import { TData, TResultData, TUser } from "../types";
+import { TResultData, TUser } from "../types";
 import { StatusCodes as http } from "http-status-codes";
-import { insertTableUser } from "../libs/db";
+import { getUser, getUsers, insertTableUser } from "../libs/db";
 import { nanoid } from "nanoid";
+import { DatabaseError } from "pg";
+import { StatusCode } from "hono/utils/http-status";
 
 export async function beginAutoCheck(c: Context) {
-  const data = handleFetch(Endpoints);
+  const data = beginCheckIn(getUsers());
 
   const [promise, error] = await handlePromise(data);
 
@@ -19,29 +20,28 @@ export async function beginAutoCheck(c: Context) {
 
   const checkData = promise as TResultData[];
 
-  return c.json(
-    {
-      data: checkData,
-    },
-    http.OK
-  );
+  return c.json({ data: checkData }, http.OK);
 }
 
-export async function getStatus(c: Context) {}
+export async function checkSingle(c: Context) {
+  const dcUserId = c.req.param("dcId");
 
-export async function addUser(c: Context) {
-  const req = c.req.json();
-
-  const [promise, error] = await handlePromise(req);
+  const user = getUser(dcUserId);
+  const [promise, error] = await handlePromise(user);
 
   if (error) {
     console.log(error);
-    return c.json({ error });
+
+    return c.json({ error }, http.INTERNAL_SERVER_ERROR);
   }
 
-  const user = promise as TUser;
+  return c.json({ user: promise }, http.OK);
+}
 
-  const addUser = insertTableUser({
+export async function addUser(c: Context) {
+  const user: TUser = await c.req.json();
+
+  const res = insertTableUser({
     id: nanoid(),
     username: user.username,
     discord_user_id: user.discord_user_id,
@@ -49,5 +49,27 @@ export async function addUser(c: Context) {
     ltuid_v2: user.ltuid_v2,
   });
 
-  return c.json({ message: "success" });
+  const [_, error] = await handlePromise(res);
+
+  if (error) {
+    let errorMessage = { error: "internal server error", code: 500 };
+
+    if (error instanceof DatabaseError) {
+      switch (error.code) {
+        case "23505":
+          errorMessage.code = http.CONFLICT;
+          errorMessage.error = error.message;
+          break;
+
+        default:
+          errorMessage.code = http.INTERNAL_SERVER_ERROR;
+          errorMessage.error = error.message;
+          break;
+      }
+      return c.json({ error: errorMessage }, errorMessage.code as StatusCode);
+    }
+    return c.json({ error }, http.INTERNAL_SERVER_ERROR);
+  }
+
+  return c.json({ message: "success" }, http.OK);
 }

@@ -1,4 +1,4 @@
-import { Client, DatabaseError } from "pg";
+import { Client } from "pg";
 import { handlePromise } from "../utils/handlePromise";
 import { Env } from "../utils/constants";
 import { TQuery, TUser } from "../types";
@@ -25,20 +25,38 @@ export async function createTableUser(client: Client) {
 
   if (error) {
     console.log(error);
-    return;
+    throw error;
   }
 }
 
-export async function getUsers(): Promise<TUser[] | void> {
+export async function getUsers(): Promise<TUser[] | unknown> {
   const res = client.query("SELECT id, username, discord_user_id, ltoken_v2, ltuid_v2 FROM users");
   const [promise, error] = await handlePromise(res);
 
   if (error) {
     console.log(error);
-    return;
+
+    throw error;
   }
 
   return promise?.rows;
+}
+
+export async function getUser(dcUserId: string) {
+  const query: TQuery = {
+    text: "SELECT id, username, discord_user_id, ltoken_v2, ltuid_v2 FROM users WHERE discord_user_id = $1",
+    values: [dcUserId],
+  };
+
+  const res = client.query(query);
+
+  const [promise, error] = await handlePromise(res);
+
+  if (error) {
+    console.log(error);
+    throw error;
+  }
+  return promise?.rows[0];
 }
 
 export async function insertTableUser({ id, username, discord_user_id, ltoken_v2, ltuid_v2 }: TUser) {
@@ -51,12 +69,11 @@ export async function insertTableUser({ id, username, discord_user_id, ltoken_v2
   const [_, error] = await handlePromise(res);
 
   if (error) {
-    if (error instanceof DatabaseError) {
-      console.log(error);
-      return error;
-    }
-    return error;
+    console.log(error);
+    throw error;
   }
+
+  return res;
 }
 
 export async function runDb() {
@@ -65,7 +82,8 @@ export async function runDb() {
 
   if (error) {
     console.log("database failed to connect", error);
-    return;
+    throw error;
   }
+
   console.log("database connected");
 }

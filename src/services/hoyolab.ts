@@ -1,11 +1,9 @@
 import { ofetch } from "ofetch";
-import { TData, TEndpoint, TResultData, TUser } from "../types";
+import { TData, TResultData, TUser } from "../types";
 import { handlePromise } from "../utils/handlePromise";
-import { getUsers } from "../libs/db";
 import { Endpoints } from "../utils/constants";
 
-export async function handleFetch(endpoints: TEndpoint[]): Promise<TResultData[] | undefined> {
-  const users = getUsers();
+export async function beginCheckIn(users: Promise<unknown>) {
   const [usersPromise, error] = await handlePromise(users);
 
   if (!usersPromise || error) {
@@ -13,29 +11,30 @@ export async function handleFetch(endpoints: TEndpoint[]): Promise<TResultData[]
     return;
   }
 
-  const data: TResultData[] = [];
+  const result: TResultData[] = [];
 
-  for (let i = 0; i < usersPromise.length; i++) {
-    const cookie = await serializeCookies(usersPromise[i].ltoken_v2, usersPromise[i].ltuid_v2);
+  for (const user of usersPromise as TUser[]) {
+    const cookie = await serializeCookies(user.ltoken_v2, user.ltuid_v2);
+    const [promise, error] = await handlePromise(fetch(cookie));
 
-    const res = await fetch(cookie);
-    console.log(res);
+    if (error) {
+      console.log(error);
+      return;
+    }
 
-    // const [promise, error] = await handlePromise(res);
-
-    // if (error) {
-    //   console.log(error);
-    //   continue;
-    // }
+    result.push({
+      id: user.id,
+      discord_user_id: user.discord_user_id,
+      username: user.username,
+      data: promise!,
+    });
   }
+
+  return result;
 }
 
 async function fetch(cookie: string) {
   const header = new Headers();
-
-  if (!cookie) {
-    return;
-  }
 
   header.set("accept", "application/json, text/plain, */*");
   header.set("accept-encoding", "gzip, deflate, br, zstd");
@@ -49,7 +48,7 @@ async function fetch(cookie: string) {
   );
   header.set("cookie", cookie);
 
-  const data: any[] = [];
+  const data: TData[] = [];
 
   for (const endpoint of Endpoints) {
     const url = new URL(endpoint.url);
@@ -63,7 +62,7 @@ async function fetch(cookie: string) {
         act_id: actId,
       },
     });
-    data.push({ res, game: endpoint.game });
+    data.push({ data: res.data, message: res.message, retcode: res.retcode, game: endpoint.game });
   }
 
   return data;

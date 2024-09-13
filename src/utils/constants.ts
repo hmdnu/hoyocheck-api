@@ -16,6 +16,10 @@ export const Endpoints = [
     game: "Zenless Zone Zero",
     url: "https://sg-act-nap-api.hoyolab.com/event/luna/zzz/os/sign?act_id=e202406031448091",
   },
+  {
+    game: "Honkai Star rail",
+    url: " https://sg-public-api.hoyolab.com/event/luna/os/sign?act_id=e202303301540311",
+  },
 ];
 
 export const ResponseCode = {
