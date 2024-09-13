@@ -1,15 +1,23 @@
 import { Hono } from "hono";
-// import { runDb } from "./db/db";
 import { addUser, beginAutoCheck, checkSingle } from "./controllers/autoCheck";
-import { Env } from "./utils/constants";
 import { StatusCodes as http } from "http-status-codes";
 
-const app = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+  API_TOKEN: string;
+};
+
+export type TEnv = {
+  API_TOKEN: string;
+  DATABASE_URL: string;
+};
+
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.use("/*", async (c, next) => {
   const query = c.req.query("key");
 
-  if (query !== Env.apiKey) {
+  if (query !== c.env.API_TOKEN) {
     return c.json({ error: "Unauthorized access" }, http.UNAUTHORIZED);
   }
   await next();
@@ -18,7 +26,10 @@ app.use("/*", async (c, next) => {
 app.get("/", (c) => c.json({ message: "hello" }));
 app.get("/checkInAll", async (c) => await beginAutoCheck(c));
 app.get("/check/:dcId", async (c) => await checkSingle(c));
-
 app.post("/add", async (c) => await addUser(c));
 
-export default app;
+export default {
+  async fetch(request, env, ctx): Promise<Response> {
+    return app.fetch(request, env, ctx);
+  },
+} satisfies ExportedHandler<TEnv>;

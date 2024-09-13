@@ -9,7 +9,7 @@ import { StatusCode } from "hono/utils/http-status";
 import { getUserByDcId, getUsers, insertUser } from "../db";
 
 export async function beginAutoCheck(c: Context) {
-  const data = beginCheckIn(getUsers());
+  const data = beginCheckIn(getUsers(c.env));
 
   const [promise, error] = await handlePromise(data);
 
@@ -26,7 +26,7 @@ export async function beginAutoCheck(c: Context) {
 export async function checkSingle(c: Context) {
   const dcUserId = c.req.param("dcId");
 
-  const user = getUserByDcId(dcUserId);
+  const user = getUserByDcId(dcUserId, c.env);
   const [promise, error] = await handlePromise(user);
 
   if (error) {
@@ -41,13 +41,16 @@ export async function checkSingle(c: Context) {
 export async function addUser(c: Context) {
   const user: TUser = await c.req.json();
 
-  const res = insertUser({
-    id: nanoid(),
-    username: user.username,
-    discordUserId: user.discordUserId,
-    ltokenV2: user.ltokenV2,
-    ltuidV2: user.ltuidV2,
-  });
+  const res = insertUser(
+    {
+      id: nanoid(),
+      username: user.username,
+      discordUserId: user.discordUserId,
+      ltokenV2: user.ltokenV2,
+      ltuidV2: user.ltuidV2,
+    },
+    c.env
+  );
 
   const [_, error] = await handlePromise(res);
 

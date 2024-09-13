@@ -1,14 +1,3 @@
-export const Env = {
-  port: Bun.env.PORT,
-  dbHost: Bun.env.DB_HOST,
-  dbPort: Bun.env.DB_PORT,
-  dbPassword: Bun.env.DB_PASSWORD,
-  dbName: Bun.env.DB_NAME,
-  dbUser: Bun.env.DB_USER,
-  apiKey: Bun.env.API_TOKEN,
-  dbUrl: Bun.env.DATABASE_URL,
-};
-
 export const Endpoints = [
   {
     game: "Genshin Impact",
