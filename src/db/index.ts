@@ -30,11 +30,11 @@ export async function getUserByDcId(dcId: string, env: TEnv) {
 
   const [promise, error] = await handlePromise(res);
 
-  if (error) {
+  if (!promise || error) {
     throw error;
   }
 
-  return promise;
+  return promise[0];
 }
 
 export async function getUsers(env: TEnv) {

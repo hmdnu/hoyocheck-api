@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { beginCheckIn } from "../services/hoyolab";
+import { beginCheckIn, beginCheckSingle } from "../services/hoyolab";
 import { handlePromise } from "../utils/handlePromise";
 import { TResultData, TUser } from "../types";
 import { StatusCodes as http } from "http-status-codes";
@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import { DatabaseError } from "pg";
 import { StatusCode } from "hono/utils/http-status";
 import { getUserByDcId, getUsers, insertUser } from "../db";
+import { promise } from "zod";
 
 export async function beginAutoCheck(c: Context) {
   const data = beginCheckIn(getUsers(c.env));
@@ -27,15 +28,25 @@ export async function checkSingle(c: Context) {
   const dcUserId = c.req.param("dcId");
 
   const user = getUserByDcId(dcUserId, c.env);
-  const [promise, error] = await handlePromise(user);
 
-  if (error) {
-    console.log(error);
+  const [userPromise, userError] = await handlePromise(user);
 
-    return c.json({ error }, http.INTERNAL_SERVER_ERROR);
+  if (userError) {
+    console.log(userError);
+
+    return c.json({ error: userError }, http.INTERNAL_SERVER_ERROR);
   }
 
-  return c.json({ user: promise }, http.OK);
+  const userData = beginCheckSingle(userPromise as TUser);
+
+  const [userDataPromise, userDataError] = await handlePromise(userData);
+
+  if (userDataError) {
+    console.log(userDataError);
+    return c.json({ error: userDataError }, http.INTERNAL_SERVER_ERROR);
+  }
+
+  return c.json({ user: userPromise, data: userDataPromise }, http.OK);
 }
 
 export async function addUser(c: Context) {

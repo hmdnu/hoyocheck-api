@@ -8,18 +8,20 @@ export async function beginCheckIn(users: Promise<unknown>) {
 
   if (!usersPromise || error) {
     console.log(error);
-    return;
+
+    throw error;
   }
 
   const result: TResultData[] = [];
 
   for (const user of usersPromise as TUser[]) {
-    const cookie = await serializeCookies(user.ltokenV2, user.ltuidV2);
+    const cookie = serializeCookies(user.ltokenV2, user.ltuidV2);
+
     const [promise, error] = await handlePromise(fetch(cookie));
 
     if (error) {
       console.log(error);
-      return;
+      throw error;
     }
 
     result.push({
@@ -31,6 +33,20 @@ export async function beginCheckIn(users: Promise<unknown>) {
   }
 
   return result;
+}
+
+export async function beginCheckSingle(user: TUser) {
+  const cookie = serializeCookies(user.ltokenV2, user.ltuidV2);
+
+  const res = fetch(cookie);
+  const [promise, error] = await handlePromise(res);
+
+  if (error) {
+    console.log(error);
+    throw error;
+  }
+
+  return promise;
 }
 
 async function fetch(cookie: string) {
@@ -68,7 +84,7 @@ async function fetch(cookie: string) {
   return data;
 }
 
-async function serializeCookies(ltoken_v2: string, ltuid_v2: string) {
+function serializeCookies(ltoken_v2: string, ltuid_v2: string) {
   let concatCookie = "";
   concatCookie += `ltoken_v2=${ltoken_v2}; ltuid_v2=${ltuid_v2}`;
 
