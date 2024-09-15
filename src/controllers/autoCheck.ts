@@ -7,7 +7,6 @@ import { nanoid } from "nanoid";
 import { DatabaseError } from "pg";
 import { StatusCode } from "hono/utils/http-status";
 import { getUserByDcId, getUsers, insertUser } from "../db";
-import { promise } from "zod";
 
 export async function beginAutoCheck(c: Context) {
   const data = beginCheckIn(getUsers(c.env));
@@ -66,24 +65,31 @@ export async function addUser(c: Context) {
   const [_, error] = await handlePromise(res);
 
   if (error) {
-    let errorMessage = { error: "internal server error", code: 500 };
+    const errorSql = getErrorSql(error as DatabaseError);
 
-    if (error instanceof DatabaseError) {
-      switch (error.code) {
-        case "23505":
-          errorMessage.code = http.CONFLICT;
-          errorMessage.error = error.message;
-          break;
-
-        default:
-          errorMessage.code = http.INTERNAL_SERVER_ERROR;
-          errorMessage.error = error.message;
-          break;
-      }
-      return c.json({ error: errorMessage }, errorMessage.code as StatusCode);
-    }
-    return c.json({ error }, http.INTERNAL_SERVER_ERROR);
+    return c.json({ error: errorSql.error }, errorSql.code as StatusCode);
   }
 
   return c.json({ message: "success" }, http.OK);
+}
+
+function getErrorSql(error: DatabaseError) {
+  let errorMessage = { error: "internal server error", code: 500 };
+
+  if (error instanceof DatabaseError) {
+    switch (error.code) {
+      case "23505":
+        errorMessage.code = http.CONFLICT;
+        errorMessage.error = error.message;
+        break;
+
+      default:
+        errorMessage.code = http.INTERNAL_SERVER_ERROR;
+        errorMessage.error = error.message;
+        break;
+    }
+    return errorMessage;
+  }
+
+  return errorMessage;
 }
