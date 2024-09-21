@@ -15,6 +15,27 @@
       "when": 1726196763959,
       "tag": "0001_curved_retro_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1726402280042,
+      "tag": "0002_lowly_frank_castle",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1726402345956,
+      "tag": "0003_cynical_iron_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1726410534674,
+      "tag": "0004_faithful_liz_osborn",
+      "breakpoints": true
     }
   ]
 }

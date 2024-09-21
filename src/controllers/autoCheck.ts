@@ -4,8 +4,6 @@ import { handlePromise } from "../utils/handlePromise";
 import { TResultData, TUser } from "../types";
 import { StatusCodes as http } from "http-status-codes";
 import { nanoid } from "nanoid";
-import { DatabaseError } from "pg";
-import { StatusCode } from "hono/utils/http-status";
 import { getUserByDcId, getUsers, insertUser } from "../db";
 
 export async function beginAutoCheck(c: Context) {
@@ -65,31 +63,14 @@ export async function addUser(c: Context) {
   const [_, error] = await handlePromise(res);
 
   if (error) {
-    const errorSql = getErrorSql(error as DatabaseError);
+    const sqlError = error as { code: string; detail: string };
 
-    return c.json({ error: errorSql.error }, errorSql.code as StatusCode);
+    if (sqlError.code === "23505") {
+      return c.json({ error: sqlError.detail }, http.CONFLICT);
+    }
+
+    return c.json({ error: "Unknown error" }, http.INTERNAL_SERVER_ERROR);
   }
 
   return c.json({ message: "success" }, http.OK);
-}
-
-function getErrorSql(error: DatabaseError) {
-  let errorMessage = { error: "internal server error", code: 500 };
-
-  if (error instanceof DatabaseError) {
-    switch (error.code) {
-      case "23505":
-        errorMessage.code = http.CONFLICT;
-        errorMessage.error = error.message;
-        break;
-
-      default:
-        errorMessage.code = http.INTERNAL_SERVER_ERROR;
-        errorMessage.error = error.message;
-        break;
-    }
-    return errorMessage;
-  }
-
-  return errorMessage;
 }

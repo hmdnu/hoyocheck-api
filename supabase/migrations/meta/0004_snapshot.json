@@ -1,0 +1,85 @@
+{
+  "id": "5723dc2d-985e-4181-acec-361dbbf7afd8",
+  "prevId": "ae211b95-03a3-4c69-8f9f-3a4d086708aa",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "username": {
+          "name": "username",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "discord_user_id": {
+          "name": "discord_user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ltoken_v2": {
+          "name": "ltoken_v2",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ltuid_v2": {
+          "name": "ltuid_v2",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_username": {
+          "name": "unique_username",
+          "nullsNotDistinct": false,
+          "columns": [
+            "username"
+          ]
+        },
+        "unique_discord_user_id": {
+          "name": "unique_discord_user_id",
+          "nullsNotDistinct": false,
+          "columns": [
+            "discord_user_id"
+          ]
+        },
+        "unique_ltoken_v2": {
+          "name": "unique_ltoken_v2",
+          "nullsNotDistinct": false,
+          "columns": [
+            "ltoken_v2"
+          ]
+        },
+        "unique_ltuid_v2": {
+          "name": "unique_ltuid_v2",
+          "nullsNotDistinct": false,
+          "columns": [
+            "ltuid_v2"
+          ]
+        }
+      }
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

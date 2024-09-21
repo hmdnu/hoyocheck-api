@@ -19,7 +19,6 @@ export async function insertUser(user: TUser, env: TEnv) {
   const [promise, error] = await handlePromise(res);
 
   if (error) {
-    console.log(error);
     throw error;
   }
 }
@@ -44,7 +43,6 @@ export async function getUsers(env: TEnv) {
   const [promise, error] = await handlePromise(res);
 
   if (error) {
-    console.log(error);
     throw error;
   }
 
