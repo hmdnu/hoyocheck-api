@@ -15,9 +15,14 @@ export type TEnv = {
 const app = new Hono<{ Bindings: Bindings }>();
 
 app.use("/*", async (c, next) => {
-  const query = c.req.query("key");
+  const auth = c.req.header("Authorization");
+  const token = auth?.split(" ")[1];
 
-  if (query !== c.env.API_TOKEN) {
+  if (!auth) {
+    return c.json({ error: "Token required" }, http.UNAUTHORIZED);
+  }
+
+  if (token !== c.env.API_TOKEN) {
     return c.json({ error: "Unauthorized access" }, http.UNAUTHORIZED);
   }
   await next();
